@@ -26,6 +26,7 @@
         </div>
         <ul class="list-group list-group-flush">
             <li class="list-group-item">{{$d->isi}}</li>
+            <a href="{{url('blog/'.$d->id)}}">selengkapnya</a>
         </ul>
         <div class="card-body">
             
@@ -35,6 +36,7 @@
                 <button  type="submit" class="btn btn-danger">Hapus</button>
             </form>
             <a href="{{url('blog/'.$d->id.'/edit')}}" class="btn btn-warning d-inline">Edit</a>
+            
         </div>
     </div>
     @endforeach

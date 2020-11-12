@@ -55,20 +55,16 @@ class BlogController extends Controller
      */
     public function store(Request $request)
     {
+        $data = [];
         //ambil data json
-        $data = file_get_contents('storage/data.json');
-        $data = json_decode($data);
-
-        //untuk menambah id terakhir data json dan ditambah 1
-        $id_baru = (int)end($data)->id + 1;
-
-        array_push($data, (object)[
-          "id" => $id_baru,
-          "judul"   => $request['judul'],
-          "penulis"=> $request['penulis'],
-          "isi" => $request['isi'],
-        ]);
-
+        if (Storage::exists('public/data.json')) {
+            $data = json_decode(Storage::get('public/data.json'));
+            //untuk menambah id terakhir data json dan ditambah 1
+            $id_terakhir = (int)end($data)->id + 1;
+        }
+        $databaru['id'] = $id_terakhir;
+        $databaru = $request->only(['judul', 'penulis', 'isi']);
+        array_push($data, $databaru);
 
         //melakukan replase file baru
         Storage::put('public/data.json', json_encode($data, JSON_PRETTY_PRINT));
@@ -86,7 +82,21 @@ class BlogController extends Controller
      */
     public function show($id)
     {
-        //
+        $data = file_get_contents('storage/data.json');
+        $data = json_decode($data);
+        $item = null;
+        foreach($data as $key => $value) {
+            if ($id == $value->id) {
+                $item = $value;
+                Storage::put('public/data.json', json_encode($data, JSON_PRETTY_PRINT));
+                break;
+            }
+        }
+            if( isset($item) ){
+            return view('detail', ['name' => 'blog', 'd' => $item]);
+            }else{
+            return redirect('/');
+            }
     }
 
     /**
@@ -156,7 +166,7 @@ class BlogController extends Controller
      */
     public function destroy($id)
     {
-        $data = file_get_contents('storage/data.json');
+        $data = Storage::get('public/data.json');
         $data = json_decode($data);
 
         $item = null;
@@ -167,7 +177,6 @@ class BlogController extends Controller
                 break;
             }
         }
-
         //cek apakah data tadi idnya ada
         if(isset($item)){
             Storage::put('public/data.json', json_encode($data, JSON_PRETTY_PRINT));
