@@ -62,8 +62,9 @@ class BlogController extends Controller
             //untuk menambah id terakhir data json dan ditambah 1
             $id_terakhir = (int)end($data)->id + 1;
         }
-        $databaru['id'] = $id_terakhir;
+        
         $databaru = $request->only(['judul', 'penulis', 'isi']);
+        $databaru['id'] = $id_terakhir;
         array_push($data, $databaru);
 
         //melakukan replase file baru
@@ -166,23 +167,27 @@ class BlogController extends Controller
      */
     public function destroy($id)
     {
-        $data = Storage::get('public/data.json');
-        $data = json_decode($data);
+        $artikel = json_decode(Storage::get('public/data.json'));
 
-        $item = null;
-        foreach($data as $key => $value) {
-            if ($id == $value->id) {
-                $item = 'ada';
-                unset($data[$key]);
-                break;
+            $art = collect($artikel)
+                ->where('id', $id)
+                ->first();
+
+            // Checking user exist or not
+            if ($art) {
+                foreach ($artikel as $key => $art) {
+                    if ($art->id == $id) {
+                        unset($artikel[$key]);
+                    }
+                }
+
+                Storage::put('public/data.json', json_encode(array_values($artikel), JSON_PRETTY_PRINT));
+
+                 return redirect('/');
+            }
+            else {
+                throw new \Exception('User not found');
             }
         }
-        //cek apakah data tadi idnya ada
-        if(isset($item)){
-            Storage::put('public/data.json', json_encode($data, JSON_PRETTY_PRINT));
-            return redirect('blog/')->with('status', 'Artikel berhasil dihapus');
-          }else {
-            return redirect('blog/')->with('status', 'Artikel gagal dihapus');
-          }
-    }
+    
 }
